@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  server:
+    build: ./server
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./server/src:/app/src
+    env_file:
+      - .env
+
+  client:
+    build: ./client
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client/src:/app/src
+    env_file:
+      - .env
+
+volumes:
+  pgdata:
