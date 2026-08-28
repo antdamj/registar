@@ -1,0 +1,204 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  M
+  Z
+}
+
+enum MembershipLevel {
+  PRIDRUZENO
+  PUNOPRAVNO
+  POCASNO
+  STARO
+}
+
+enum DietType {
+  MESOJED
+  VEGETARIJANSTVO
+  VEGANSTVO
+  SVEJED
+}
+
+enum AppRole {
+  CLAN
+  VODITELJ_SEKCIJE
+  ADMINISTRATOR
+}
+
+enum PendingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum FieldStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Section {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  homeMembers      Member[]          @relation("HomeSection")
+  memberSections   MemberSection[]
+  managedBy        Member[]          @relation("ManagedSection")
+  pendingMembers   PendingMember[]
+}
+
+model Team {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  memberTeams MemberTeam[]
+}
+
+model Drink {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  memberDrinks MemberDrink[]
+}
+
+model Allergy {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  memberAllergies MemberAllergy[]
+}
+
+model Member {
+  id                 Int             @id @default(autoincrement())
+  firstName          String
+  lastName           String
+  oib                String          @unique @db.VarChar(11)
+  dateOfBirth        DateTime        @db.Date
+  address            String
+  gender             Gender
+  faculty            String
+  phone              String
+  privateEmail       String
+  associationEmail   String          @unique
+  memberSince        DateTime        @db.Date
+  cardNumber         String          @unique
+  membershipLevel    MembershipLevel
+  fullMemberSince    DateTime?       @db.Date
+  dietType           DietType
+  shirtSize          String
+  acceptedDocuments  Boolean         @default(false)
+  certificatePath    String?
+  certificateValidUntil DateTime?    @db.Date
+  appRole            AppRole         @default(CLAN)
+
+  homeSectionId      Int
+  homeSection        Section         @relation("HomeSection", fields: [homeSectionId], references: [id])
+
+  managedSectionId   Int?
+  managedSection     Section?        @relation("ManagedSection", fields: [managedSectionId], references: [id])
+
+  sections           MemberSection[]
+  teams              MemberTeam[]
+  drinks             MemberDrink[]
+  allergies          MemberAllergy[]
+
+  pendingFieldChanges  PendingFieldChange[] @relation("MemberChanges")
+  reviewedFieldChanges PendingFieldChange[] @relation("ReviewedBy")
+
+  auditLogs          AuditLog[]
+
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+}
+
+model MemberSection {
+  id        Int     @id @default(autoincrement())
+  memberId  Int
+  sectionId Int
+
+  member    Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  section   Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, sectionId])
+}
+
+model MemberTeam {
+  id       Int    @id @default(autoincrement())
+  memberId Int
+  teamId   Int
+
+  member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  team     Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, teamId])
+}
+
+model MemberDrink {
+  id       Int    @id @default(autoincrement())
+  memberId Int
+  drinkId  Int
+
+  member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  drink    Drink  @relation(fields: [drinkId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, drinkId])
+}
+
+model MemberAllergy {
+  id        Int     @id @default(autoincrement())
+  memberId  Int
+  allergyId Int
+
+  member    Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  allergy   Allergy @relation(fields: [allergyId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, allergyId])
+}
+
+model PendingMember {
+  id            Int           @id @default(autoincrement())
+  googleEmail   String        @unique
+  fieldData     Json
+  fieldStatus   Json
+  status        PendingStatus @default(PENDING)
+
+  homeSectionId Int
+  homeSection   Section       @relation(fields: [homeSectionId], references: [id])
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model PendingFieldChange {
+  id         Int         @id @default(autoincrement())
+  memberId   Int
+  fieldName  String
+  newValue   String
+  status     FieldStatus @default(PENDING)
+
+  member     Member      @relation("MemberChanges", fields: [memberId], references: [id], onDelete: Cascade)
+
+  reviewedBy   Int?
+  reviewer     Member?   @relation("ReviewedBy", fields: [reviewedBy], references: [id])
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  action    String
+  details   Json?
+
+  user      Member?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+}
