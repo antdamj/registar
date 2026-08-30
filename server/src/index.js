@@ -3,6 +3,10 @@ const cors = require('cors');
 const passport = require('./passport');
 const config = require('./config');
 const authRoutes = require('./routes/auth');
+const sectionRoutes = require('./routes/sections');
+const teamRoutes = require('./routes/teams');
+const drinkRoutes = require('./routes/drinks');
+const allergyRoutes = require('./routes/allergies');
 
 const app = express();
 
@@ -19,6 +23,10 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/sections', sectionRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/drinks', drinkRoutes);
+app.use('/api/allergies', allergyRoutes);
 
 app.listen(config.port, () => {
   console.log(`Server running on port ${config.port}`);
