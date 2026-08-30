@@ -7,6 +7,7 @@ const sectionRoutes = require('./routes/sections');
 const teamRoutes = require('./routes/teams');
 const drinkRoutes = require('./routes/drinks');
 const allergyRoutes = require('./routes/allergies');
+const pendingRoutes = require('./routes/pending');
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use('/api/sections', sectionRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/drinks', drinkRoutes);
 app.use('/api/allergies', allergyRoutes);
+app.use('/api/pending', pendingRoutes);
 
 app.listen(config.port, () => {
   console.log(`Server running on port ${config.port}`);
