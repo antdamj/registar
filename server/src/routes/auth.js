@@ -108,4 +108,39 @@ router.get('/me', authenticateToken, async (req, res) => {
   }
 });
 
+router.post('/refresh', authenticateToken, async (req, res) => {
+  try {
+    const { email } = req.user;
+
+    const member = await prisma.member.findUnique({
+      where: { associationEmail: email },
+    });
+
+    const tokenPayload = {
+      email,
+      displayName: req.user.displayName,
+    };
+
+    if (member) {
+      tokenPayload.memberId = member.id;
+      tokenPayload.appRole = member.appRole;
+      tokenPayload.isNewUser = false;
+    } else {
+      tokenPayload.memberId = null;
+      tokenPayload.appRole = null;
+      tokenPayload.isNewUser = true;
+    }
+
+    const token = jwt.sign(tokenPayload, config.jwtSecret, {
+      expiresIn: '24h',
+    });
+
+    res.json({ token });
+  } catch (err) {
+    console.error('Refresh token error:', err);
+    res.status(500).json({ error: 'Greška na serveru.' });
+  }
+});
+
+
 module.exports = router;
