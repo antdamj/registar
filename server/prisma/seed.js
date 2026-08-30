@@ -60,6 +60,34 @@ async function main() {
     });
   }
   console.log(`Seeded ${drinks.length} drinks`);
+
+    // Admin korisnik
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@udruga.hr';
+  await prisma.member.upsert({
+    where: { associationEmail: adminEmail },
+    update: { appRole: 'ADMINISTRATOR' },
+    create: {
+      firstName: 'KSET',
+      lastName: 'Admin',
+      oib: '00000000000',
+      dateOfBirth: new Date('1990-01-01'),
+      address: 'Admin adresa',
+      gender: 'M',
+      faculty: 'N/A',
+      phone: '0000000000',
+      privateEmail: adminEmail,
+      associationEmail: adminEmail,
+      memberSince: new Date(),
+      cardNumber: 'ADMIN-001',
+      membershipLevel: 'PUNOPRAVNO',
+      dietType: 'SVEJED',
+      shirtSize: 'M',
+      acceptedDocuments: true,
+      appRole: 'ADMINISTRATOR',
+      homeSectionId: 1,
+    },
+  });
+  console.log(`Seeded admin user: ${adminEmail}`);
 }
 
 main()
