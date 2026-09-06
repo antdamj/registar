@@ -2,7 +2,9 @@ services:
   db:
     image: postgres:16
     ports:
-      - "5432:5432"
+      # Host 5432 je zauzet lokalnim PostgreSQL-om, pa Docker bazu izlažemo na 5433.
+      # Interni pristup (server -> db:5432) i dalje ide preko Docker mreže i nije pogođen.
+      - "5433:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
