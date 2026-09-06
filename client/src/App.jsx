@@ -75,10 +75,16 @@ function App() {
   const appRole = user?.member?.appRole || user?.appRole;
   const isLeaderOrAdmin = appRole === 'VODITELJ_SEKCIJE' || appRole === 'ADMINISTRATOR';
 
-  // Decides what to show on the home route based on user state.
   const renderHome = () => {
     if (!user.isNewUser && user.member) {
-      return <MemberView member={user.member} />;
+      return (
+        <MemberView
+          member={user.member}
+          onUpdated={(updated) =>
+            setUser((prev) => ({ ...prev, member: updated }))
+          }
+        />
+      );
     }
     if (user.isNewUser && pending) {
       return <PendingView pending={pending} onUpdated={(updated) => setPending(updated)} />;
